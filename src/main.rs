@@ -12,7 +12,15 @@ mod loro_table;
 mod table;
 
 fn main() {
-    // run_yrs("./assets/uber.csv");
+    println!("============================");
+    println!("Running Yrs...");
+    println!("============================");
+    run_yrs("./assets/uber.csv");
+    println!("\n\n");
+
+    println!("============================");
+    println!("Running Loro...");
+    println!("============================");
     run_loro("./assets/uber.csv");
 }
 
@@ -42,15 +50,19 @@ where
     let compressed = zstd::encode_all(&data[..], 4).unwrap();
     let elapsed = start.elapsed();
     let original_len = { File::open(&fpath).unwrap().metadata().unwrap().len() };
+    let start = Instant::now();
+    let _new_table = Table::decode(&data).unwrap();
+    let import_elapsed = start.elapsed();
     println!(
-        "encoded {} cells ({} rows x {} columns) in {:?}: {} bytes, {} compressed (original file size: {} bytes)\n",
+        "encoded {} cells ({} rows x {} columns) in {:?}: {} bytes, {} compressed (original file size: {} bytes) decoded in {:?}\n",
         cell_count,
         rows,
         cols,
         elapsed,
         data.len(),
         compressed.len(),
-        original_len
+        original_len,
+        import_elapsed
     );
 
     // read some data
@@ -91,15 +103,38 @@ where
     let compressed = zstd::encode_all(&data[..], 4).unwrap();
     let elapsed = start.elapsed();
     let original_len = { File::open(&fpath).unwrap().metadata().unwrap().len() };
+    let start = Instant::now();
+    let _new_table = LoroTable::decode(&data).unwrap();
+    let import_elapsed = start.elapsed();
     println!(
-        "encoded {} cells ({} rows x {} columns) in {:?}: {} bytes, {} compressed (original file size: {} bytes)\n",
+        "encoded {} cells ({} rows x {} columns) in {:?}: {} bytes, {} compressed (original file size: {} bytes) decoded in {:?}\n",
         cell_count,
         rows,
         cols,
         elapsed,
         data.len(),
         compressed.len(),
-        original_len
+        original_len,
+        import_elapsed
+    );
+
+    let start = Instant::now();
+    let data = table.encode_shallow();
+    let compressed = zstd::encode_all(&data[..], 4).unwrap();
+    let elapsed = start.elapsed();
+    let start = Instant::now();
+    let _new_table = LoroTable::decode(&data).unwrap();
+    let import_elapsed = start.elapsed();
+    println!(
+        "[ShallowMode] encoded {} cells ({} rows x {} columns) in {:?}: {} bytes, {} compressed (original file size: {} bytes) decoded in {:?}\n",
+        cell_count,
+        rows,
+        cols,
+        elapsed,
+        data.len(),
+        compressed.len(),
+        original_len,
+        import_elapsed
     );
 
     // read some data

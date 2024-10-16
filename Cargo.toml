@@ -11,3 +11,7 @@ serde = { version = "1.0", features = ["derive"] }
 zstd = "0.13.2"
 loro = { git = "https://github.com/loro-dev/loro.git", tag = "loro-crdt@1.0.0-beta.1", package = "loro", features = ["counter"] }
 anyhow = "1.0.89"
+
+
+[profile.release]
+debug = true

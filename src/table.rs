@@ -6,7 +6,10 @@ use std::sync::Arc;
 use yrs::encoding::serde::from_any;
 use yrs::types::array::ArrayIter;
 use yrs::types::ToJson;
-use yrs::{Any, Array, ArrayRef, Map, MapPrelim, MapRef, Out, ReadTxn, TransactionMut};
+use yrs::updates::decoder::Decode;
+use yrs::{
+    Any, Array, ArrayRef, Map, MapPrelim, MapRef, Out, ReadTxn, Transact, TransactionMut, Update,
+};
 
 pub struct Table {
     cols: ArrayRef,
@@ -121,6 +124,14 @@ impl Table {
             columns: columns.into(),
             cells: self.cells.clone(),
         }
+    }
+
+    pub(crate) fn decode(data: &[u8]) -> anyhow::Result<Self> {
+        let doc = yrs::Doc::new();
+        let map = doc.get_or_insert_map("csv-table");
+        let mut tx = doc.transact_mut();
+        tx.apply_update(Update::decode_v2(data).unwrap()).unwrap();
+        Ok(Self::new(map, &mut tx))
     }
 }
 
